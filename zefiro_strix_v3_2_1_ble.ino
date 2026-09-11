@@ -285,7 +285,7 @@ void cargarConfigDefecto() {
   cfg.nightStartH   = 18; cfg.nightStartM   = 55;
   cfg.nightEndH     = 19; cfg.nightEndM     = 55;
 
-  cfg.recTimeSeg  = 20;
+  cfg.recTimeSeg  = 40;
   cfg.pauseMs     = 500;
   cfg.volume      = 30;
   cfg.gainFactor  = 3;
@@ -342,7 +342,7 @@ bool cargarConfigSD() {
   parseTime(doc["nightStart"]   | "18:55", cfg.nightStartH,   cfg.nightStartM);
   parseTime(doc["nightEnd"]     | "19:55", cfg.nightEndH,     cfg.nightEndM);
 
-  cfg.recTimeSeg  = doc["recTime"]    | 20;
+  cfg.recTimeSeg  = doc["recTime"]    | 40;
   cfg.pauseMs     = doc["pauseMs"]    | 500;
   cfg.volume      = doc["volume"]     | 30;
   cfg.gainFactor  = doc["gainFactor"] | 3;

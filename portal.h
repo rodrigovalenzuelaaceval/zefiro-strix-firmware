@@ -845,7 +845,7 @@ const char PORTAL_HTML[] PROGMEM = R"HTMLEOF(
     </div>
     <div class="field" style="max-width:200px">
       <label>Duración de grabación (seg)</label>
-      <input type="number" id="recTime" min="5" max="120" value="20">
+      <input type="number" id="recTime" min="5" max="120" value="40">
       <div class="hint">Segundos de escucha tras cada canto</div>
     </div>
   </div>
@@ -1355,7 +1355,7 @@ async function finalizar() {
     morningEnd:   document.getElementById('morningEnd').value,
     nightStart:   document.getElementById('nightStart').value,
     nightEnd:     document.getElementById('nightEnd').value,
-    recTime:      parseInt(document.getElementById('recTime').value) || 20,
+    recTime:      parseInt(document.getElementById('recTime').value) || 40,
     sysDate:      document.getElementById('sysDate').value,
     sysTime:      document.getElementById('sysTime').value,
     tracks,
