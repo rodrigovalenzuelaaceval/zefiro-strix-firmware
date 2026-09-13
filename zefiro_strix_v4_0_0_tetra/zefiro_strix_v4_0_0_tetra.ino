@@ -1097,8 +1097,10 @@ String buildTracksPageJsonBLE(int page) {
     t["species"] = cfg.tracks[i].species;
     t["active"]  = cfg.tracks[i].active;
   }
+  int totalPages = cfg.trackCount == 0 ? 1 : (cfg.trackCount + TRACKS_PAGE_SIZE - 1) / TRACKS_PAGE_SIZE;
   doc["page"] = page;
-  doc["trackCount"] = cfg.trackCount;
+  doc["totalPages"] = totalPages;
+  doc["totalTracks"] = cfg.trackCount;
   String out;
   serializeJson(doc, out);
   return out;
