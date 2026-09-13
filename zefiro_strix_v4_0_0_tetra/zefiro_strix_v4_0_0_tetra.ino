@@ -225,6 +225,7 @@ NimBLECharacteristic* bleTracksPageChar = nullptr;
 NimBLECharacteristic* bleTracksDataChar = nullptr;
 int                   bleTracksSelectedPage = 0;
 volatile bool         bleClienteConectado = false;
+uint16_t              bleConnHandle = 0;
 bool                  clienteActivo       = false;
 
 // ============================================================================
@@ -943,6 +944,7 @@ void cerrarPortal() {
 class ZefiroServerCallbacks : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer* srv, NimBLEConnInfo& info) override {
     bleClienteConectado = true;
+    bleConnHandle = info.getConnHandle();
     Serial.println("[BLE] Cliente conectado.");
   }
   void onDisconnect(NimBLEServer* srv, NimBLEConnInfo& info, int reason) override {
@@ -1218,6 +1220,16 @@ void iniciarBLE() {
 void detenerBLE() {
   if (!bleServer) return;
   NimBLEDevice::stopAdvertising();
+
+  if (bleClienteConectado) {
+    Serial.println("[BLE] Desconectando cliente antes de apagar el stack...");
+    bleServer->disconnect(bleConnHandle);
+    unsigned long t0 = millis();
+    while (bleClienteConectado && millis() - t0 < 2000) {
+      delay(10);
+    }
+  }
+
   NimBLEDevice::deinit(true);
   bleServer        = nullptr;
   bleConfigChar    = nullptr;
