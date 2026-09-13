@@ -1654,22 +1654,40 @@ void registrarCSV(const char* archivo, int trackNum, float rms, float durSeg) {
   if (nuevo) {
     f.println("fecha,hora,unidad,estacion,proyecto,investigador,"
               "utm_zona,utm_este,utm_norte,"
-              "track,especie,archivo,duracion_seg,rms,fw_version");
+              "track,especie,archivo,duracion_seg,rms,dbfs,"
+              "gain_factor,mic_source,temp_c,hum_pct,pres_hpa,fw_version");
   }
 
   DateTime now = rtc.now();
-  char linea[320];
+
+  double dbfs = 20.0 * log10((double)rms / 32767.0 + 1e-9);
+  const char* micSourceTxt = (cfg.micSource == 0) ? "digital" : "analogico";
+
+  float bmeT, bmeH, bmeP;
+  bool bmeLeido = leerBME280(bmeT, bmeH, bmeP);
+  char campoTemp[12], campoHum[12], campoPres[12];
+  if (bmeLeido) {
+    snprintf(campoTemp, sizeof(campoTemp), "%.1f", bmeT);
+    snprintf(campoHum,  sizeof(campoHum),  "%.0f", bmeH);
+    snprintf(campoPres, sizeof(campoPres), "%.0f", bmeP);
+  } else {
+    campoTemp[0] = campoHum[0] = campoPres[0] = '\0';
+  }
+
+  char linea[400];
   snprintf(linea, sizeof(linea),
     "%04d-%02d-%02d,%02d:%02d:%02d,"
     "%s,%s,%s,%s,"
     "%s,%ld,%ld,"
-    "%d,%s,%s,%.1f,%.0f,%s",
+    "%d,%s,%s,%.1f,%.0f,%.1f,"
+    "%d,%s,%s,%s,%s,%s",
     now.year(), now.month(), now.day(),
     now.hour(), now.minute(), now.second(),
     cfg.unitName, cfg.stationName, cfg.projectName, cfg.researcher,
     cfg.utmZone, cfg.utmEaste, cfg.utmNorte,
     trackNum, cfg.tracks[trackNum - 1].species,
-    archivo, durSeg, rms, FW_VERSION);
+    archivo, durSeg, rms, dbfs,
+    cfg.gainFactor, micSourceTxt, campoTemp, campoHum, campoPres, FW_VERSION);
 
   f.println(linea);
   f.close();
