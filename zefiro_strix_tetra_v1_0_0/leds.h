@@ -51,7 +51,7 @@
 #include <math.h>
 
 // ---------------- Configuracion de hardware ----------------
-#define LED_PIN               10
+#define LED_PIN               47   // net "LED1", pin fisico 24 del modulo. GPIO10 (net "LEDC") NO tiene relacion con los LEDs — nombre similar pero circuito RC distinto.
 #define LED_COUNT             8
 
 // Brillo (0-255). Deliberadamente bajo fuera del encendido para ahorrar bateria.

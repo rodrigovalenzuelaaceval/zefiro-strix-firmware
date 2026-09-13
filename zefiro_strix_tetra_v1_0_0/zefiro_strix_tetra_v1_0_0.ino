@@ -41,7 +41,7 @@
   - RTC DS3231 (I2C)
   - BME280 opcional vía conector I2C externo (U20) — NO implementado en esta
     versión, mismo bus I2C que el RTC, se puede agregar después sin tocar pines.
-  - 8x WS2812B (GPIO10) — ver leds.h
+  - 8x WS2812B (GPIO47) — ver leds.h
   - IP2326 (carga), BAT_STAT digital en GPIO7 (sin ADC de voltaje en esta
     revisión de PCB — ver notas de v2)
   - Botón "stealth" de estado en GPIO6
@@ -1042,6 +1042,7 @@ String buildConfigJsonBLE() {
   doc["nightEnd"]     = buf;
 
   doc["recTime"]    = cfg.recTimeSeg;
+  doc["pauseMs"]    = cfg.pauseMs;
   doc["volume"]     = cfg.volume;
   doc["gainFactor"] = cfg.gainFactor;
   doc["micSource"]  = cfg.micSource;
