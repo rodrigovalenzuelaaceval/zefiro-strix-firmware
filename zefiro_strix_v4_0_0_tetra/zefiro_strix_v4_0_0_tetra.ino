@@ -209,6 +209,8 @@ bool                 bmeDisponible = false;  // sensor opcional, no bloquea el a
 WebServer            server(80);
 DNSServer            dnsServer;
 bool                 portalShutdown = false;
+bool                 shutdownPending = false;
+unsigned long        shutdownRequestedAt = 0;
 bool                 timerActivo    = true;
 Config               cfg;
 bool                 sdMainMontada  = false;
@@ -811,8 +813,8 @@ void setupEndpoints() {
       showLedsStatus(COLOR_VERDE, 2);
       if (shutdown) {
         Serial.println("[PORTAL] Config guardada. Cerrando portal en 5 s...");
-        delay(5000);
-        portalShutdown = true;
+        shutdownRequestedAt = millis();
+        shutdownPending = true;
       } else {
         Serial.println("[PORTAL] Config guardada.");
       }
@@ -906,6 +908,11 @@ void manejarPortal() {
     if (bleClienteConectado && millis() - tUltimoNotify >= 2000) {
       actualizarStatusBLE();
       tUltimoNotify = millis();
+    }
+
+    if (shutdownPending && millis() - shutdownRequestedAt >= 5000) {
+      shutdownPending = false;
+      portalShutdown = true;
     }
 
     if (portalShutdown) break;
@@ -1015,8 +1022,8 @@ class CommandCharCallbacks : public NimBLECharacteristicCallbacks {
     bool shutdown = doc["shutdown"] | false;
     if (shutdown) {
       Serial.println("[BLE] Comando shutdown recibido. Cerrando portal en 5 s...");
-      delay(5000);
-      portalShutdown = true;
+      shutdownRequestedAt = millis();
+      shutdownPending = true;
     }
   }
 };
