@@ -1,6 +1,6 @@
 /*
   ============================================================================
-  ZÉFIRO STRIX - TETRA MAIN BOARD - FIRMWARE V1.0.0
+  ZÉFIRO STRIX - TETRA MAIN BOARD - FIRMWARE V4.0.0
   ============================================================================
   Dispositivo: ESP32-S3-WROOM-1U-N16 + PCM1808 (ADC) + PCM5102A (DAC)
                + micrófono digital externo opcional (I2S) + doble microSD
@@ -111,7 +111,7 @@
 // ============================================================================
 // CONSTANTES DE FIRMWARE
 // ============================================================================
-#define FW_VERSION        "1.0.0-tetra"
+#define FW_VERSION        "4.0.0-tetra"
 #define AP_SSID           "ZefiroStrix-Config"
 #define AP_PASS           ""
 #define AP_IP             "192.168.4.1"
