@@ -1132,6 +1132,9 @@ void actualizarStatusBLE() {
   char rtcBuf[20];
   snprintf(rtcBuf, sizeof(rtcBuf), "%04d-%02d-%02d %02d:%02d:%02d",
            now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
+  uint64_t sdFree = (SD.totalBytes() - SD.usedBytes()) / 1024;
+  doc["unitName"]   = cfg.unitName;
+  doc["sdFreeMB"]   = (int)(sdFree / 1024);
   doc["rtcTime"]    = rtcBuf;
   doc["sessions"]   = cfg.totalSessions;
   doc["recordings"] = cfg.totalRecordings;
