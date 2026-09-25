@@ -343,6 +343,13 @@ void setup() {
     guardarConfigSD();
   }
 
+  // TEMP - calibracion de volumen con pot AP1 al maximo fisico. NO toca la
+  // SD (cfg.volume en config.json queda intacto). Ajustar este numero e ir
+  // reflasheando por USB hasta que deje de saturar; luego quitar este bloque
+  // y fijar el valor final directo en cargarConfigDefecto()/cargarConfigSD().
+  cfg.volume = 18;
+  Serial.printf("[CONFIG] cfg.volume forzado a %d (calibracion, override temporal)\n", cfg.volume);
+
   iniciarPortal();
   iniciarBLE();
   manejarPortal();
