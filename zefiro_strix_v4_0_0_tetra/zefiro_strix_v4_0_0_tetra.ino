@@ -1723,7 +1723,7 @@ void registrarCSV(const char* archivo, int trackNum, float rms, float durSeg) {
     f.println("fecha,hora,unidad,estacion,proyecto,investigador,"
               "utm_zona,utm_este,utm_norte,"
               "track,especie,archivo,duracion_seg,rms,dbfs,"
-              "gain_factor,mic_source,temp_c,hum_pct,pres_hpa,fw_version");
+              "gain_factor,mic_source,temp_c,hum_pct,pres_hpa,voltaje_bat,fw_version");
   }
 
   DateTime now = rtc.now();
@@ -1742,20 +1742,24 @@ void registrarCSV(const char* archivo, int trackNum, float rms, float durSeg) {
     campoTemp[0] = campoHum[0] = campoPres[0] = '\0';
   }
 
-  char linea[400];
+  float vBatCsv = leerVoltajeBateria();
+  char campoVoltaje[8];
+  snprintf(campoVoltaje, sizeof(campoVoltaje), "%.2f", vBatCsv);
+
+  char linea[420];
   snprintf(linea, sizeof(linea),
     "%04d-%02d-%02d,%02d:%02d:%02d,"
     "%s,%s,%s,%s,"
     "%s,%ld,%ld,"
     "%d,%s,%s,%.1f,%.0f,%.1f,"
-    "%d,%s,%s,%s,%s,%s",
+    "%d,%s,%s,%s,%s,%s,%s",
     now.year(), now.month(), now.day(),
     now.hour(), now.minute(), now.second(),
     cfg.unitName, cfg.stationName, cfg.projectName, cfg.researcher,
     cfg.utmZone, cfg.utmEaste, cfg.utmNorte,
     trackNum, cfg.tracks[trackNum - 1].species,
     archivo, durSeg, rms, dbfs,
-    cfg.gainFactor, micSourceTxt, campoTemp, campoHum, campoPres, FW_VERSION);
+    cfg.gainFactor, micSourceTxt, campoTemp, campoHum, campoPres, campoVoltaje, FW_VERSION);
 
   f.println(linea);
   f.close();
