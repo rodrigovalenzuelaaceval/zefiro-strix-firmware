@@ -71,6 +71,8 @@
 #include <math.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <esp_adc_cal.h>
+#include <driver/adc.h>
 
 // NOTA: el límite de tamaño de característica BLE (BLE_ATT_ATTR_MAX_LEN) se
 // edita directamente en la librería instalada: NimBLEAttValue.h (512→2048).
@@ -107,6 +109,13 @@
 // --- Otros ---
 #define BOTON_ESTADO_PIN  6    // botón "stealth"
 #define BAT_STAT_PIN      7    // IP2326: trickle vs carga normal (digital, sin voltaje)
+#define VBAT_ADC_PIN            GPIO_NUM_3   // modificacion v1.0: divisor externo (no en esquematico original)
+#define VBAT_ADC_CHANNEL        ADC1_CHANNEL_2
+#define VBAT_RATIO              29.4f        // ratio real calibrado en banco (modulo sensor + divisor R1=3.3k/R2=10k)
+#define VBAT_CUTOFF_V           9.6f         // 3.2V/celda, pack 3S - entra a modo proteccion
+#define VBAT_RESUME_V           10.2f        // histeresis - no reactivar hasta este voltaje
+#define VBAT_SAMPLES            32
+#define BATTERY_PROTECTION_SLEEP_US  (30ULL * 60 * 1000000ULL)  // 30 min en modo proteccion
 
 // ============================================================================
 // CONSTANTES DE FIRMWARE
@@ -215,6 +224,9 @@ bool                 timerActivo    = true;
 Config               cfg;
 bool                 sdMainMontada  = false;
 bool                 sdPlaybackMontada = false;
+
+// Sobrevive al deep sleep; solo se resetea con un power-cycle real.
+RTC_DATA_ATTR bool    batteryProtectionActive = false;
 
 NimBLEServer*        bleServer          = nullptr;
 NimBLECharacteristic* bleConfigChar     = nullptr;
@@ -350,6 +362,27 @@ void setup() {
 // LOOP
 // ============================================================================
 void loop() {
+  float vBat = leerVoltajeBateria();
+  Serial.printf("[BAT] VBAT=%.2fV\n", vBat);
+
+  if (batteryProtectionActive) {
+    if (vBat >= VBAT_RESUME_V) {
+      batteryProtectionActive = false;
+      Serial.println("[BAT] Voltaje recuperado. Saliendo de modo proteccion.");
+    } else {
+      Serial.println("[BAT] Modo proteccion activo. Ciclo omitido, durmiendo 30 min.");
+      configurarWakeupBoton();
+      esp_sleep_enable_timer_wakeup(BATTERY_PROTECTION_SLEEP_US);
+      esp_deep_sleep_start();
+    }
+  } else if (vBat < VBAT_CUTOFF_V) {
+    batteryProtectionActive = true;
+    Serial.println("[BAT] VBAT bajo umbral de seguridad. Entrando en modo proteccion.");
+    configurarWakeupBoton();
+    esp_sleep_enable_timer_wakeup(BATTERY_PROTECTION_SLEEP_US);
+    esp_deep_sleep_start();
+  }
+
   montarSDPrincipal();
   DateTime now   = rtc.now();
   int hora       = now.hour();
@@ -373,6 +406,32 @@ void loop() {
   configurarWakeupBoton();
   esp_sleep_enable_timer_wakeup(5ULL * 60 * 1000000ULL);
   esp_deep_sleep_start();
+}
+
+// ============================================================================
+// BATERIA: LECTURA DE VOLTAJE POR DIVISOR RESISTIVO (ADC1, GPIO3) - v1.0
+// ============================================================================
+float leerVoltajeBateria() {
+  static bool adcInicializado = false;
+  static esp_adc_cal_characteristics_t adc_chars_vbat;
+
+  if (!adcInicializado) {
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(VBAT_ADC_CHANNEL, ADC_ATTEN_DB_11);
+    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12,
+                              1100, &adc_chars_vbat);
+    adcInicializado = true;
+  }
+
+  uint32_t suma_mV = 0;
+  for (int i = 0; i < VBAT_SAMPLES; i++) {
+    int raw = adc1_get_raw(VBAT_ADC_CHANNEL);
+    suma_mV += esp_adc_cal_raw_to_voltage(raw, &adc_chars_vbat);
+    delay(2);
+  }
+
+  float vPin_V = (suma_mV / (float)VBAT_SAMPLES) / 1000.0f;
+  return vPin_V * VBAT_RATIO;
 }
 
 // ============================================================================
