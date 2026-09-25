@@ -1597,7 +1597,7 @@ bool reproducirTrackWav(const char* filePath) {
       int32_t muestra = (int32_t)(buf16[i] * gananciaDigital);
       if (muestra > 32767) muestra = 32767;
       if (muestra < -32768) muestra = -32768;
-      buf32[i] = ((int32_t)muestra) << 11;  // alinear a formato 32-bit del bus I2S
+      buf32[i] = ((int32_t)muestra) << 16;  // alinear MSB-first a formato 32-bit del bus I2S (PCM5102A, I2S_COMM_FORMAT_STAND_I2S)
     }
     size_t escritos;
     i2s_write(I2S_NUM_0, buf32, leidos16 * 4, &escritos, portMAX_DELAY);
