@@ -343,13 +343,6 @@ void setup() {
     guardarConfigSD();
   }
 
-  // TEMP - calibracion de volumen con pot AP1 al maximo fisico. NO toca la
-  // SD (cfg.volume en config.json queda intacto). Ajustar este numero e ir
-  // reflasheando por USB hasta que deje de saturar; luego quitar este bloque
-  // y fijar el valor final directo en cargarConfigDefecto()/cargarConfigSD().
-  cfg.volume = 18;
-  Serial.printf("[CONFIG] cfg.volume forzado a %d (calibracion, override temporal)\n", cfg.volume);
-
   iniciarPortal();
   iniciarBLE();
   manejarPortal();
@@ -496,7 +489,7 @@ void cargarConfigDefecto() {
 
   cfg.recTimeSeg  = 20;
   cfg.pauseMs     = 500;
-  cfg.volume      = 20;
+  cfg.volume      = 6;   // calibrado en banco 25-sep: pot AP1 al maximo sin saturar, incluso en pistas ruidosas
   cfg.gainFactor  = 3;
   cfg.micSource   = 0;  // digital externo por defecto (mejor calidad)
 
@@ -554,7 +547,7 @@ bool cargarConfigSD() {
 
   cfg.recTimeSeg  = doc["recTime"]    | 20;
   cfg.pauseMs     = doc["pauseMs"]    | 500;
-  cfg.volume      = doc["volume"]     | 20;
+  cfg.volume      = doc["volume"]     | 6;
   cfg.gainFactor  = doc["gainFactor"] | 3;
   cfg.micSource   = doc["micSource"]  | 0;
 
