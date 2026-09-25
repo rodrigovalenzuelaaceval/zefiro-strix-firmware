@@ -73,6 +73,7 @@
 #include <Adafruit_BME280.h>
 #include <esp_adc_cal.h>
 #include <driver/adc.h>
+#include <driver/rtc_io.h>
 
 // NOTA: el límite de tamaño de característica BLE (BLE_ATT_ATTR_MAX_LEN) se
 // edita directamente en la librería instalada: NimBLEAttValue.h (512→2048).
@@ -439,6 +440,8 @@ float leerVoltajeBateria() {
 // ============================================================================
 void configurarWakeupBoton() {
   uint64_t mask = 1ULL << BOTON_ESTADO_PIN;
+  rtc_gpio_pullup_en((gpio_num_t)BOTON_ESTADO_PIN);
+  rtc_gpio_pulldown_dis((gpio_num_t)BOTON_ESTADO_PIN);
   esp_sleep_enable_ext1_wakeup(mask, ESP_EXT1_WAKEUP_ALL_LOW);
 }
 
