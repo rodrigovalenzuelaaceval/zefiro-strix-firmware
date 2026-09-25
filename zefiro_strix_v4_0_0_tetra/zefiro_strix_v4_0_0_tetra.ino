@@ -24,10 +24,10 @@
      secuencial: reproducir desde CARD4 → desmontar → montar CARD3 → grabar.
      Esto evita la complejidad de manejar dos instancias de sistema de
      archivos SD activas al mismo tiempo.
-  5. cfg.volume ya no controla un DFPlayer (no existe en este hardware).
-     Se reutiliza como una ganancia digital simple aplicada a las muestras
-     de playback antes de enviarlas por I2S (0-30, donde ~20 ≈ volumen
-     original sin recorte). Ajustar tras escuchar la salida real.
+  5. La ganancia de playback es una constante fija de firmware
+     (PLAYBACK_GAIN_PCT, ver #define), aplicada a las muestras antes de
+     enviarlas por I2S. Calibrado en banco 25-sep: pot AP1 al maximo sin
+     saturar, incluso en pistas ruidosas.
   6. Librerías requeridas (Gestor de Bibliotecas de Arduino IDE):
      RTClib, ArduinoJson, NimBLE-Arduino, Adafruit NeoPixel, SD, SPI
      (DFRobotDFPlayerMini YA NO se usa, puedes desinstalarla si quieres).
@@ -92,6 +92,11 @@
 #define I2S_MCLK          17
 #define I2S_DATA_OUT      4    // hacia PCM5102A (playback)
 #define I2S_DATA_IN       5    // desde el mux MICSW (grabación)
+#define PLAYBACK_GAIN_PCT  6  // ganancia digital de playback (0-30,
+                              // formula original: gananciaDigital =
+                              // PLAYBACK_GAIN_PCT/20.0). Calibrado en
+                              // banco 25-sep: pot AP1 al maximo sin
+                              // saturar, incluso en pistas ruidosas.
 #define MIC_SEL_PIN       9    // SN74HC157: LOW=mic digital externo, HIGH=PCM1808 analógico
 #define MIC_SOURCE_DIGITAL LOW
 #define MIC_SOURCE_ANALOG  HIGH
@@ -201,7 +206,6 @@ struct Config {
   int  nightEndH,     nightEndM;
   int  recTimeSeg;
   int  pauseMs;
-  int  volume;       // ahora: ganancia digital de playback (0-30), no DFPlayer
   int  gainFactor;   // ganancia de grabación (igual que antes)
   int  micSource;    // 0 = digital externo (default), 1 = analógico PCM1808
   TrackConfig tracks[MAX_TRACKS];
@@ -489,7 +493,6 @@ void cargarConfigDefecto() {
 
   cfg.recTimeSeg  = 20;
   cfg.pauseMs     = 500;
-  cfg.volume      = 6;   // calibrado en banco 25-sep: pot AP1 al maximo sin saturar, incluso en pistas ruidosas
   cfg.gainFactor  = 3;
   cfg.micSource   = 0;  // digital externo por defecto (mejor calidad)
 
@@ -547,7 +550,6 @@ bool cargarConfigSD() {
 
   cfg.recTimeSeg  = doc["recTime"]    | 20;
   cfg.pauseMs     = doc["pauseMs"]    | 500;
-  cfg.volume      = doc["volume"]     | 6;
   cfg.gainFactor  = doc["gainFactor"] | 3;
   cfg.micSource   = doc["micSource"]  | 0;
 
@@ -594,7 +596,6 @@ bool guardarConfigSD() {
 
   doc["recTime"]    = cfg.recTimeSeg;
   doc["pauseMs"]    = cfg.pauseMs;
-  doc["volume"]     = cfg.volume;
   doc["gainFactor"] = cfg.gainFactor;
   doc["micSource"]  = cfg.micSource;
 
@@ -755,7 +756,6 @@ void setupEndpoints() {
     doc["nightEnd"]     = buf;
 
     doc["recTime"]    = cfg.recTimeSeg;
-    doc["volume"]     = cfg.volume;
     doc["gainFactor"] = cfg.gainFactor;
     doc["micSource"]  = cfg.micSource;
 
@@ -839,7 +839,6 @@ void setupEndpoints() {
     parseTime(doc["nightEnd"]     | "", cfg.nightEndH,     cfg.nightEndM);
 
     cfg.recTimeSeg = doc["recTime"] | cfg.recTimeSeg;
-    cfg.volume     = doc["volume"]  | cfg.volume;
     cfg.micSource  = doc["micSource"] | cfg.micSource;
 
     JsonArray tracks = doc["tracks"];
@@ -1114,7 +1113,6 @@ String buildConfigJsonBLE() {
 
   doc["recTime"]    = cfg.recTimeSeg;
   doc["pauseMs"]    = cfg.pauseMs;
-  doc["volume"]     = cfg.volume;
   doc["gainFactor"] = cfg.gainFactor;
   doc["micSource"]  = cfg.micSource;
   doc["boardType"]  = BLE_BOARD_TYPE;
@@ -1151,7 +1149,6 @@ bool aplicarConfigJsonBLE(const String& body) {
   parseTime(doc["nightEnd"]     | "", cfg.nightEndH,     cfg.nightEndM);
 
   cfg.recTimeSeg = doc["recTime"] | cfg.recTimeSeg;
-  cfg.volume     = doc["volume"]  | cfg.volume;
   cfg.gainFactor = doc["gainFactor"] | cfg.gainFactor;
   cfg.micSource  = doc["micSource"]  | cfg.micSource;
 
@@ -1581,7 +1578,7 @@ bool reproducirTrackWav(const char* filePath) {
   // Exporta las pistas ya en el formato correcto (8kHz, 16-bit, mono) para
   // evitar este problema.
 
-  float gananciaDigital = constrain((float)cfg.volume / 20.0f, 0.0f, 1.5f);
+  float gananciaDigital = constrain((float)PLAYBACK_GAIN_PCT / 20.0f, 0.0f, 1.5f);
 
   // static: evita que estos ~12KB vivan en el stack (causaba stack
   // overflow real y crash en banco - ver hallazgo del 12-sep). Con
