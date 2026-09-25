@@ -1199,7 +1199,7 @@ bool aplicarTracksPageJsonBLE(const String& body) {
 void actualizarStatusBLE() {
   if (!bleStatusChar) return;
   DateTime now = rtc.now();
-  StaticJsonDocument<320> doc;
+  StaticJsonDocument<512> doc;
   char rtcBuf[20];
   snprintf(rtcBuf, sizeof(rtcBuf), "%04d-%02d-%02d %02d:%02d:%02d",
            now.year(), now.month(), now.day(), now.hour(), now.minute(), now.second());
