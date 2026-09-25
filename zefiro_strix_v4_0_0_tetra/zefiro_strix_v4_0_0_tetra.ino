@@ -1223,6 +1223,15 @@ void actualizarStatusBLE() {
     doc["presHpa"] = p;
   }
 
+  float vBatStatus = leerVoltajeBateria();
+  int batPct = (int)(((vBatStatus - VBAT_CUTOFF_V) / (12.6f - VBAT_CUTOFF_V)) * 100.0f);
+  if (batPct < 0) batPct = 0;
+  if (batPct > 100) batPct = 100;
+
+  doc["batPct"] = batPct;
+  doc["batV"]   = vBatStatus;
+  doc["batLow"] = batteryProtectionActive;
+
   String out;
   serializeJson(doc, out);
   bleStatusChar->setValue(out);
