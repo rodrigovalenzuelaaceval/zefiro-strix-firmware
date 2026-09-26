@@ -311,7 +311,7 @@ void setup() {
   btStop();
   Serial.println("[BOOT] RF apagada.");
 
-  delay(3000);  // prueba de descarte: delay mucho mas largo para confirmar si el problema es de asentamiento del regulador en arranque en frio desde bateria
+  delay(50);  // pequeño respiro tras apagar RF, sin proposito critico (el problema real de lectura era el ratio VBAT_RATIO mal calibrado con USB, no tiempo de asentamiento)
   vBatCacheado = leerVoltajeBateria();
   Serial.printf("[BAT] VBAT=%.2fV (medido con radio apagada, valor cacheado para toda la sesion)\n", vBatCacheado);
 
