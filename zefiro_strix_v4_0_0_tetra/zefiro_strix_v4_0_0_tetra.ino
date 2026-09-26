@@ -240,6 +240,14 @@ NimBLECharacteristic* bleTimeSyncChar   = nullptr;
 NimBLECharacteristic* bleCommandChar    = nullptr;
 NimBLECharacteristic* bleTracksPageChar = nullptr;
 NimBLECharacteristic* bleTracksDataChar = nullptr;
+
+// Voltaje de bateria medido UNA sola vez en setup(), justo tras apagar el
+// radio (WiFi/BT), y reutilizado por todo el resto del programa (proteccion
+// por bateria baja, status BLE, CSV). Evita leer el ADC con WiFi/BLE activos
+// (ruido real de radio transmitiendo, no solo un transitorio de apagado -
+// un delay() no lo resuelve porque el radio permanece encendido durante
+// toda la sesion del portal, no se apaga entre lecturas).
+float vBatCacheado = 0.0f;
 int                   bleTracksSelectedPage = 0;
 volatile bool         bleClienteConectado = false;
 uint16_t              bleConnHandle = 0;
@@ -302,6 +310,10 @@ void setup() {
   WiFi.mode(WIFI_OFF);
   btStop();
   Serial.println("[BOOT] RF apagada.");
+
+  delay(50);
+  vBatCacheado = leerVoltajeBateria();
+  Serial.printf("[BAT] VBAT=%.2fV (medido con radio apagada, valor cacheado para toda la sesion)\n", vBatCacheado);
 
   pinMode(BOTON_ESTADO_PIN, INPUT_PULLUP);
   pinMode(BAT_STAT_PIN, INPUT);
@@ -367,9 +379,7 @@ void setup() {
 // LOOP
 // ============================================================================
 void loop() {
-  delay(200);  // deja asentar el ADC tras el apagado de WiFi/BLE (ver leerVoltajeBateria)
-  float vBat = leerVoltajeBateria();
-  Serial.printf("[BAT] VBAT=%.2fV\n", vBat);
+  float vBat = vBatCacheado;  // ya medido en setup() antes de abrir portal/BLE
 
   if (batteryProtectionActive) {
     if (vBat >= VBAT_RESUME_V) {
@@ -1221,7 +1231,7 @@ void actualizarStatusBLE() {
     doc["presHpa"] = p;
   }
 
-  float vBatStatus = leerVoltajeBateria();
+  float vBatStatus = vBatCacheado;  // evita leer el ADC con WiFi/BLE activos (ruido de radio real)
   int batPct = (int)(((vBatStatus - VBAT_CUTOFF_V) / (12.6f - VBAT_CUTOFF_V)) * 100.0f);
   if (batPct < 0) batPct = 0;
   if (batPct > 100) batPct = 100;
@@ -1743,7 +1753,7 @@ void registrarCSV(const char* archivo, int trackNum, float rms, float durSeg) {
     campoTemp[0] = campoHum[0] = campoPres[0] = '\0';
   }
 
-  float vBatCsv = leerVoltajeBateria();
+  float vBatCsv = vBatCacheado;
   char campoVoltaje[8];
   snprintf(campoVoltaje, sizeof(campoVoltaje), "%.2f", vBatCsv);
 
