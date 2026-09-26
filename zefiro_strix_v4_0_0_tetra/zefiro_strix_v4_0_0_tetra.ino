@@ -117,7 +117,7 @@
 #define BAT_STAT_PIN      7    // IP2326: trickle vs carga normal (digital, sin voltaje)
 #define VBAT_ADC_PIN            GPIO_NUM_3   // modificacion v1.0: divisor externo (no en esquematico original)
 #define VBAT_ADC_CHANNEL        ADC1_CHANNEL_2
-#define VBAT_RATIO              9.67f        // recalibrado 26-sep: los calibrados anteriores (6.66, 10.05, 29.4) se hicieron con USB conectado, condicion que infla la lectura de forma no explicable por resistencias (imposible fisicamente, la carga solo puede bajar el voltaje, nunca subirlo). Este valor sale de medicion directa con multimetro SIN USB (condicion real de despliegue): VBAT=12.18V, Vpin=1.26V. Coincide casi exacto (9.65 vs 9.67) con el calculo teorico del divisor cargado (modulo 30k/7.5k con impedancia de salida ~6k, en serie con R1=3.3k/R2=10k).
+#define VBAT_RATIO              9.99f        // ajuste fino 26-sep sobre el 9.67 anterior, usando lectura real sin USB (multimetro 12.19V vs firmware 11.8V con ratio 9.67)
 #define VBAT_CUTOFF_V           9.6f         // 3.2V/celda, pack 3S - entra a modo proteccion
 #define VBAT_RESUME_V           10.2f        // histeresis - no reactivar hasta este voltaje
 #define VBAT_SAMPLES            32
