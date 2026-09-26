@@ -117,7 +117,7 @@
 #define BAT_STAT_PIN      7    // IP2326: trickle vs carga normal (digital, sin voltaje)
 #define VBAT_ADC_PIN            GPIO_NUM_3   // modificacion v1.0: divisor externo (no en esquematico original)
 #define VBAT_ADC_CHANNEL        ADC1_CHANNEL_2
-#define VBAT_RATIO              29.4f        // ratio real calibrado en banco (modulo sensor + divisor R1=3.3k/R2=10k)
+#define VBAT_RATIO              10.05f       // ratio recalibrado 25-sep tras resoldar el divisor (ratio anterior de 29.4 quedo invalido con los nuevos contactos)
 #define VBAT_CUTOFF_V           9.6f         // 3.2V/celda, pack 3S - entra a modo proteccion
 #define VBAT_RESUME_V           10.2f        // histeresis - no reactivar hasta este voltaje
 #define VBAT_SAMPLES            32
