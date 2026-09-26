@@ -367,6 +367,7 @@ void setup() {
 // LOOP
 // ============================================================================
 void loop() {
+  delay(200);  // deja asentar el ADC tras el apagado de WiFi/BLE (ver leerVoltajeBateria)
   float vBat = leerVoltajeBateria();
   Serial.printf("[BAT] VBAT=%.2fV\n", vBat);
 
