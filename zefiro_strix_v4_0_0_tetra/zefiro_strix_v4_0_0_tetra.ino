@@ -311,7 +311,7 @@ void setup() {
   btStop();
   Serial.println("[BOOT] RF apagada.");
 
-  delay(500);  // deja asentar el riel de alimentacion en arranque en frio desde bateria (50ms era insuficiente sin USB conectado)
+  delay(3000);  // prueba de descarte: delay mucho mas largo para confirmar si el problema es de asentamiento del regulador en arranque en frio desde bateria
   vBatCacheado = leerVoltajeBateria();
   Serial.printf("[BAT] VBAT=%.2fV (medido con radio apagada, valor cacheado para toda la sesion)\n", vBatCacheado);
 
